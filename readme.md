@@ -43,5 +43,8 @@ root for that reason, because it was not doing anything and was just confusing.
 My wisdom so far collected in https://stackoverflow.com/a/66504080/2715716.
 
 At this point, with this setup, opening this directory in VS Code, the language
-service for TypeScript kicks in and loads the plugin and printing the line
-`Started custom plugin :-)` to the TS Server log.
+service for TypeScript kicks in and loads the plugin. The plugin then prints
+lines starting `PROXY:` into the server log as the language service object is
+being proxied.
+
+- [ ] Figure out how to influence the `updateOpen` command to strip `?` and `#`
