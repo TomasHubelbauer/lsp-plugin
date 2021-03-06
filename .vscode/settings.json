@@ -1,0 +1,6 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  // ~/.config/Code/logs/**/tsserver.log
+  "typescript.tsserver.log": "verbose",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
