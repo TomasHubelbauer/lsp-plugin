@@ -8,7 +8,7 @@ module.exports = function ({ /** @type {tssl} */ typescript }) {
         // Copy not mutate the array otherwise the language service will break
         // Strip `?search` and `#fragment` off relative path module names containing them
         moduleNames = moduleNames.map(moduleName => moduleName.match(/^(\.\.?\/.*?)(\?.*)?(#.*?)?$/)?.[1] ?? moduleName);
-        info.project.projectService.logger.info('resolveModuleNames moduleNames ' + JSON.stringify(moduleNames));
+        info.project.projectService.logger.info('resolveModuleNames ' + moduleNames);
         return resolveModuleNames(moduleNames, containingFile, reusedNames, redirectedReferences, options);
       };
 
