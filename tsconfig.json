@@ -4,6 +4,8 @@
       {
         "name": "plugin"
       }
-    ]
+    ],
+    "allowJs": true,
+    "noEmit": true
   }
 }
