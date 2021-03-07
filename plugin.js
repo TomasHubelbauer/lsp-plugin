@@ -1,44 +1,18 @@
-// `typescript` is the `ts` namespace in node_modules/typescript/lib/tsserverlibrary.d.ts
-/** @typedef {{ typescript: unknown; }} Modules */
+// node_modules/typescript/lib/tsserverlibrary.d.ts
+module.exports = function ({ /** @type {tssl} */ typescript }) {
+  return {
+    create(/** @type {tssl.server.PluginCreateInfo} */ info) {
+      const resolveModuleNames = info.languageServiceHost.resolveModuleNames.bind(info.languageServiceHost);
 
-// This is `interface LanguageService` in node_modules/typescript/lib/tsserverlibrary.d.ts
-/** @typedef {{ }} Service */
+      info.languageServiceHost.resolveModuleNames = function (moduleNames, containingFile, reusedNames, redirectedReferences, options) {
+        // Copy not mutate the array otherwise the language service will break
+        // Strip `?search` and `#fragment` off relative path module names containing them
+        moduleNames = moduleNames.map(moduleName => moduleName.match(/^(\.\.?\/.*?)(\?.*)?(#.*?)?$/)?.[1] ?? moduleName);
+        info.project.projectService.logger.info('resolveModuleNames moduleNames ' + JSON.stringify(moduleNames));
+        return resolveModuleNames(moduleNames, containingFile, reusedNames, redirectedReferences, options);
+      };
 
-module.exports = function init(/** @type {Modules} */ modules) {
-  function create(info) {
-    /** @type {Service} */
-    const service = info.languageService;
-
-    info.project.projectService.logger.info('Returned service proxy');
-    return new Proxy(
-      service,
-
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy#handler_functions
-      {
-        apply(target, thisArg, argArray) {
-          const result = Reflect.apply(target, thisArg, argArray);
-          info.project.projectService.logger.info('PROXY: apply ' + target.name + ' ' + JSON.stringify({ argArray, result }));
-          return result;
-        },
-        get(target, prop, receiver) {
-          const result = Reflect.get(target, prop, receiver);
-          const resultProxy = new Proxy(
-            result,
-            {
-              apply(target, thisArg, argArray) {
-                const result = Reflect.apply(target, thisArg, argArray);
-                info.project.projectService.logger.info('PROXY: apply ' + target.name + ' ' + JSON.stringify({ argArray, result }));
-                return result;
-              }
-            }
-          );
-
-          info.project.projectService.logger.info('PROXY: get ' + JSON.stringify({ prop, resultType: typeof result, result }));
-          return resultProxy;
-        }
-      }
-    );
-  }
-
-  return { create };
+      return info.languageService;
+    }
+  };
 };

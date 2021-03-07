@@ -1,50 +1,36 @@
 # LSP Plugin
 
-Can I write a plugin to the TS language service which VS Coud would then use?
+This repository includes my attempt as building a TypeScript language server
+plugin which would strip `?search` and `#fragment` off relative path local file
+ESM module imports.
 
-Minimal plugin example:
-https://github.com/sjkillen/minimal-tsserver-plugin
+To test it, open this repository in VS Code, accept the prompt to switch to the
+workspace TypeScript version or if it doesn't show, press Cmd+Shift+P when in a
+TS/JS file and select *TypeScript: Select TypeScript Version*. Once done, open
+`demo-ts/index.ts` or `demo-js/index.js` and see that the `mod.ts` import works.
+Without this TS Server plugin, that import would fail. You can verify this by
+switching back to the VS Code's version of TypeScript. The plugin will not load
+in case a non-workspace version of TS Server is used.
 
-LSP documentation including tips on running and testing:
-https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
-
-SO Q&A showing how to run a LSP plugin:
-https://stackoverflow.com/a/56156004/2715716
-
-First, VS Code workspace TS version must be used. Cmd+Shift+P when in a TS file
-and search for TypeScript: Select TypeScript Version. Select the one defined in
-the workspace. I currently have it pointing to just regular old TypeScript,
-since we do not need to use a fork of it.
-
-Next up, we need to configure the language service to register our plugin. This
-is done in `tsconfig.json`.
-
-It is also helpful to use the TypeScript: Restart TS Server command and to check
-the Output pane TypeScript channel for TS Server messages. This is where the
-plugin messages written through the TS Server infrastructure should go I think.
-
-https://www.typescriptlang.org/tsconfig#plugins
+Using the workspace version will not be needed once this work is packaged as a
+VS Code extension that would register the TS Server plugin automatically. This
+extension could then be placed in the recommended extensions in the workspace
+configuration of VS Code.
 
 https://code.visualstudio.com/api/references/contribution-points#contributes.typescriptServerPlugins
 
-View TS Server logs:
-https://github.com/microsoft/TypeScript/wiki/Getting-logs-from-TS-Server-in-VS-Code
+Until that is done, the TypeScript version used by the workspace is placed in
+`node_modules` and the plugin is registered through `tsconfig.json`. There is
+some trickiness to loading it (it is really in `node_modules/plugin` and loads
+`plugin.js`) and I'm hoping this will go away once the VS Code extension way is
+used. More info on this in https://stackoverflow.com/a/66504080/2715716.
 
-The plugin will not load if workspace TypeScript version is pointed at the stock
-global TypeScript installation, because it makes the working directory the one
-where TypeScript is coming from, not this repository's directory.
-
-Maybe installing TypeScript locally will work. `npm i typescript` and move the
-plugin code into `node_modules/plugin` and make sure a `package.json` with that
-name is there. I had no luck trying to make it look outside of `node_modules`.
-I have removed the `plugin` local path module from `package.json` in the repo
-root for that reason, because it was not doing anything and was just confusing.
-
-My wisdom so far collected in https://stackoverflow.com/a/66504080/2715716.
-
-At this point, with this setup, opening this directory in VS Code, the language
-service for TypeScript kicks in and loads the plugin. The plugin then prints
-lines starting `PROXY:` into the server log as the language service object is
-being proxied.
-
-- [ ] Figure out how to influence the `updateOpen` command to strip `?` and `#`
+To test changes to the code, make them in `plugin.js` and then press Cmd+Shift+P
+and select *TypeScript: Restart TS Server* and monitor the Output pane channel
+TypeScript. This log will show whether the changed plugin was successfully added
+to TS Server (*Starting...* and *Forking...* will show) or not (*Killing* will
+show). In case the TS Server starts up fine, the Cmd+Shift+P *TypeScript: Open
+TS Server log* command can be used to view the TS Server log. In case it won't,
+this command might not work and the `Log file:` line path from the Output pane
+TypeScript channel needs to be manually opened, for example in the Integrated
+Terminal using `code "${logFilePath}"` substituting the path from the log line.
